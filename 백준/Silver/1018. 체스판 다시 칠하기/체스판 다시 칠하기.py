@@ -1,26 +1,37 @@
 #모든 경우를 확인하는 브루트 포스가 적절하다.
+#시간복잡도 : 50*50*2*64 = 30만
 
-n,m = map(int,input().split())
-arr = [list(input()) for _ in range(n)]
-answer = n*m
+def get_min(sy, sx):
+    global board, chess1, chess2
+    case1 = case2 = 0
 
-flag = "W"
-for row in range(n-7):
-	for col in range(m-7):
-		cnt1,cnt2 = 0,0
-		for i in range(row, row+8):
-			for j in range(col, col+8):
-				if arr[i][j] != flag:
-					cnt1 += 1
-				else:
-					cnt2 += 1
+    for i in range(8):
+        for j in range(8):
+            case1 += (board[sy + i][sx + j] != chess1[i][j])
+            case2 += (board[sy + i][sx + j] != chess2[i][j])
 
-				flag = "B" if flag == "W" else "W"
+    return min(case1, case2)
 
-			flag = "B" if flag == "W" else "W"			
-		if answer > cnt1:
-			answer = cnt1
-		if answer > cnt2:
-			answer = cnt2
 
-print(answer)
+# initial setting
+chess1 = [['' for _ in range(8)] for _ in range(8)]
+chess2 = [['' for _ in range(8)] for _ in range(8)]
+
+for i in range(8):
+    for j in range(8):
+        chess1[i][j] = ('W' if (i + j) % 2 == 0 else 'B')
+        chess2[i][j] = ('B' if (i + j) % 2 == 0 else 'W')
+
+# input
+N, M = map(int, input().split())
+board = [input() for _ in range(N)]
+
+# solve
+best = int(1e12)
+for y in range(N):
+    for x in range(M):
+        if (y + 7 >= N) or (x + 7 >= M):
+            continue
+        best = min(best, get_min(y, x))
+
+print(best)
