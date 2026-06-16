@@ -1,0 +1,41 @@
+name: Auto Code Review
+
+on:
+  push:
+    paths:
+      - '프로그래머스/**/*.py'
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2   # 이전 커밋과 비교하기 위해
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install langgraph langchain-google-genai python-dotenv
+
+      - name: Get changed files
+        id: changed
+        run: |
+          # 방금 푸시된 파일 목록 가져오기
+          echo "files=$(git diff --name-only HEAD~1 HEAD | grep '프로그래머스' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+
+      - name: Run AI Review
+        env:
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_NAME: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: python auto_review.py
