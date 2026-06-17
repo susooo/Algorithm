@@ -1,5 +1,4 @@
 langgraph>=0.2.0
-langchain-anthropic>=0.1.0
-anthropic
 python-dotenv
+langchain-google-genai
 PyGithub
