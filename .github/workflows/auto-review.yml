@@ -9,7 +9,7 @@ jobs:
   review:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout
@@ -31,8 +31,14 @@ jobs:
         id: changed
         run: |
           # 방금 푸시된 파일 목록 가져오기
-          echo "files=$(git diff --name-only HEAD~1 HEAD | grep '프로그래머스' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only HEAD~1 HEAD | grep '프로그래머스'
+          echo "EOF" >> $GITHUB_OUTPUT
 
+      - name: Debug
+        run: |
+          echo "${{ steps.changed.outputs.files }}"
+          
       - name: Run AI Review
         env:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
