@@ -3,7 +3,7 @@ name: Auto Code Review
 on:
   push:
     paths:
-      - '프로그래머스/**/*.py'
+      - '프로그래머스/**/**/*.py'
 
 jobs:
   review:
