@@ -35,14 +35,14 @@ def solution(storage, requests):
                     if board[nx][ny]==char:
                         board[nx][ny] = "*"
                     visited[nx][ny] = True
-                         
+                    
     #크레인 출고
     def two(char):
         for i in range(n+2):
             for j in range(m+2):
                 if board[i][j] == char:
                     board[i][j] = "*"
-        
+                    
     for r in requests:
         if len(r) == 1:
             one(r)
