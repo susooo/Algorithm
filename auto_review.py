@@ -292,14 +292,27 @@ def parse_changed_files():
 
     file = Path("changed_files.txt")
 
+    print("===== FILE EXISTS =====")
+    print(file.exists())
+
     if not file.exists():
         return []
 
-    return [
+    content = file.read_text(encoding="utf-8")
+
+    print("===== FILE CONTENT =====")
+    print(repr(content))
+
+    files = [
         line.strip()
-        for line in file.read_text(encoding="utf-8").splitlines()
+        for line in content.splitlines()
         if line.strip().endswith(".py")
     ]
+
+    print("===== PARSED FILES =====")
+    print(files)
+
+    return files
 
 if __name__ == "__main__":
     files = parse_changed_files()
