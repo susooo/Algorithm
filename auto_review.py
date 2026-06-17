@@ -288,21 +288,18 @@ def build_graph():
 
 # ── 6) 실행 ──────────────────────────────────────────
 def parse_changed_files():
-    changed = os.environ.get("CHANGED_FILES", "")
+    from pathlib import Path
 
-    print("===== CHANGED_FILES =====")
-    print(repr(changed))
+    file = Path("changed_files.txt")
 
-    files = [
-        f.strip()
-        for f in changed.splitlines()
-        if f.strip().endswith(".py")
+    if not file.exists():
+        return []
+
+    return [
+        line.strip()
+        for line in file.read_text(encoding="utf-8").splitlines()
+        if line.strip().endswith(".py")
     ]
-
-    print("===== PARSED FILES =====")
-    print(files)
-
-    return files
 
 if __name__ == "__main__":
     files = parse_changed_files()
