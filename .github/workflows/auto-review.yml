@@ -29,16 +29,13 @@ jobs:
 
       - name: Get changed files
         run: |
+          # 한글 경로 깨짐 방지 설정
+          git config core.quotepath false
+          
           echo "===== 전체 변경 파일 ====="
           git diff --name-only HEAD~1 HEAD
           
-          echo "===== .py 파일만 필터 ====="
-          git diff --name-only HEAD~1 HEAD | grep '\.py$' || true
-          
-          echo "===== 프로그래머스 폴더 필터 ====="
-          git diff --name-only HEAD~1 HEAD | grep -i '프로그래머스' || true
-          
-          # 저장
+          # .py 파일만 저장
           git diff --name-only HEAD~1 HEAD | grep '\.py$' > changed_files.txt || true
           
           echo "===== changed_files.txt 내용 ====="
