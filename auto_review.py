@@ -222,16 +222,15 @@ def review_formatter(state: ReviewState) -> dict:
     hidden_str = ""
     for hc in hidden_cases:
         hidden_str += f"""  ▪ **{hc.get('case', '')}**
-     └ 이유: {hc.get('reason', '')}
+     └ 이유: {hc.get('reason', '')}\n
      └ 학습: {hc.get('lesson', '')}\n\n"""
     
     # 추천 문제
     rec_str = "\n".join(state["recommendations"]) if state["recommendations"] else "추천 문제 없음"
     
     review_text = f"""
-{'='*55}
+
 ## 🤖 AI 코드 리뷰 — {state['problem_title']}
-{'='*55}
 
 ### 🧠 알고리즘 비교 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 | | 알고리즘 | 시간복잡도 |
@@ -291,26 +290,16 @@ def parse_changed_files():
     from pathlib import Path
 
     file = Path("changed_files.txt")
-
-    print("===== FILE EXISTS =====")
-    print(file.exists())
-
+    
     if not file.exists():
         return []
 
     content = file.read_text(encoding="utf-8")
-
-    print("===== FILE CONTENT =====")
-    print(repr(content))
-
     files = [
         line.strip()
         for line in content.splitlines()
         if line.strip().endswith(".py")
     ]
-
-    print("===== PARSED FILES =====")
-    print(files)
 
     return files
 
