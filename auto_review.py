@@ -221,9 +221,11 @@ def review_formatter(state: ReviewState) -> dict:
     hidden_cases = analysis.get('hidden_cases', [])
     hidden_str = ""
     for hc in hidden_cases:
-        hidden_str += f"""  ▪ **{hc.get('case', '')}**
-     └ 이유: {hc.get('reason', '')}\n
-     └ 학습: {hc.get('lesson', '')}\n\n"""
+        hidden_str += (
+        f"  ▪ **{hc.get('case', '')}**\n"
+        f"  └ 이유: {hc.get('reason', '')}\n\n"
+        f"  └ 학습: {hc.get('lesson', '')}\n\n"
+    )
     
     # 추천 문제
     rec_str = "\n".join(state["recommendations"]) if state["recommendations"] else "추천 문제 없음"
