@@ -37,7 +37,7 @@ HISTORY_FILE = Path("history.json")
 def load_history() -> dict:
     if HISTORY_FILE.exists():
         return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
-    return {"weak_topics": {}, "solved_by_algorithm": {}, "total": 0}
+    return {"solved_by_algorithm": {}, "total": 0}
 
 def save_history(h: dict):
     HISTORY_FILE.write_text(
@@ -81,9 +81,9 @@ Solution:
 
 Respond ONLY in this JSON format:
 {{
-"my_algorithm": "알고리즘 이름만",
+"my_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 완전탐색 | 구현 | 수학",
 "time_complexity": "O(?)",
-"optimal_algorithm": "알고리즘 이름만",
+"optimal_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 완전탐색 | 구현 | 수학",
 "optimal_time_complexity": "O(?)",
 "correctness": "correct / partial / incorrect",
 "hidden_cases": [
@@ -92,8 +92,7 @@ Respond ONLY in this JSON format:
       "reason": "왜 이 케이스에서 틀리는지 (한국어)",
       "lesson": "앞으로 이런 문제에서 고려할 점 (한국어)"
     }}
-  ],
-"weak_topic": "main weak topic"
+  ]
 }}"""
 
     resp = llm.invoke(prompt)   # Gemini API 호출
@@ -110,24 +109,16 @@ Respond ONLY in this JSON format:
             "time_complexity": "?",
             "optimal_algorithm": "?",
             "optimal_time_complexity": "?",
-            "correctness": "unknown",
-            "hidden_cases": [],
-            "weak_topic": "Unknown"
+            "hidden_cases": []
         }
     return {"analysis": analysis}
 
-# 약점유형 누적 저장: 틀린 문제만 약점으로 누적 + 알고리즘별 분류하여 history.json에 카운트 쌓기
-def weakness_tracker(state: ReviewState) -> dict:
+# 알고리즘별 분류하여 history.json에 카운트 쌓기
+def history_tracker(state: ReviewState) -> dict:
     h = state["history"]
     analysis = state["analysis"]
-    topic = state["analysis"].get("weak_topic", "Unknown")
-    correctness = analysis.get("correctness", "unknown")
     my_algorithm = analysis.get("my_algorithm", "Unknown")
     problem_title = state["problem_title"]
-    
-    # partial / incorrect일 때만 약점 카운트
-    if correctness in ("partial", "incorrect"):
-        h["weak_topics"][topic] = h["weak_topics"].get(topic, 0) + 1
 
     # 알고리즘별 분류 저장
     if my_algorithm not in h["solved_by_algorithm"]:
@@ -176,24 +167,33 @@ Keep it concise. Use Korean."""
 #문제 추천: 약점 통계를 보내서 다음 문제 3개를 추천받기
 def recommendation_generator(state: ReviewState) -> dict:
     h = state["history"]
-    top_weak = sorted(h["weak_topics"].items(), key=lambda x: -x[1])[:3]
-    weak_str = ", ".join([f"{t}({c}회 틀림)" for t, c in top_weak]) or "아직 없음"
+    my_algorithm = state["analysis"].get("my_algorithm", "Unknown")
+    
+    # 현재 유형에서 푼 문제 목록
+    solved_in_type = h["solved_by_algorithm"].get(my_algorithm, [])
+    solved_str = ", ".join(solved_in_type) or "없음"
+
+    # 전체 유형 현황
+    type_summary = ", ".join([
+        f"{algo}({len(titles)}문제)"
+        for algo, titles in h["solved_by_algorithm"].items()
+    ]) or "없음"
 
     prompt = f"""You are a coding test coach. Recommend next Programmers problems in Korean.
 
-Student's weak topics (틀린 횟수 기준): {weak_str}
-Total solved: {h['total']}
-Current problem weak topic: {state['analysis'].get('weak_topic')}
-Current problem correctness: {state['analysis'].get('correctness')}
+Current problem algorithm type: {my_algorithm}
+Problems already solved in this type: {solved_str}
+Total solved by type: {type_summary}
 
-Recommend exactly 3 Programmers(프로그래머스) problems.
+Goal: Help the student fully master the '{my_algorithm}' type
+
+Recommend exactly 3 Programmers(프로그래머스) problems of the same or closely related type.
 IMPORTANT: Only recommend problems that are Level 2 or higher (레벨 2 이상).
+IMPORTANT: Do NOT recommend problems already solved: {solved_str}
 Format (strictly follow this):
 1️⃣  [문제이름] - 추천 이유 한 줄
 2️⃣  [문제이름] - 추천 이유 한 줄
-3️⃣  [문제이름] - 추천 이유 한 줄
-
-Focus on the weakest topics."""
+3️⃣  [문제이름] - 추천 이유 한 줄"""
 
     resp = llm.invoke(prompt)
     lines = [l.strip() for l in resp.content.split("\n") if l.strip()]
@@ -204,18 +204,6 @@ Focus on the weakest topics."""
 def review_formatter(state: ReviewState) -> dict:
     analysis = state["analysis"]
     h = state["history"]
-    correctness = analysis.get("correctness", "unknown")
-    
-    correctness_emoji = {
-        "correct":   "✅ 정답",
-        "partial":   "🟡 부분 정답",
-        "incorrect": "❌ 오답",
-    }.get(correctness, "❓ 알 수 없음")
-    
-    my_algo = analysis.get('my_algorithm', '?')
-    optimal_algo = analysis.get('optimal_algorithm', '?')
-    my_time = analysis.get('time_complexity', '?')
-    optimal_time = analysis.get('optimal_time_complexity', '?')
     
     #히든 케이스
     hidden_cases = analysis.get('hidden_cases', [])
@@ -268,7 +256,7 @@ def build_graph():
     # 노드 등록
     g.add_node("file_loader",              file_loader)
     g.add_node("code_analyzer",            code_analyzer)
-    g.add_node("weakness_tracker",         weakness_tracker)
+    g.add_node("history_tracker",         history_tracker)
     g.add_node("feedback_generator",       feedback_generator)
     g.add_node("recommendation_generator", recommendation_generator)
     g.add_node("review_formatter",         review_formatter)
@@ -277,9 +265,9 @@ def build_graph():
     # 엣지 연결
     g.add_edge(START,                  "file_loader")
     g.add_edge("file_loader",          "code_analyzer")
-    g.add_edge("code_analyzer",       "weakness_tracker")
-    g.add_edge("weakness_tracker",    "feedback_generator")
-    g.add_edge("weakness_tracker",    "recommendation_generator")
+    g.add_edge("code_analyzer",       "history_tracker")
+    g.add_edge("history_tracker",    "feedback_generator")
+    g.add_edge("history_tracker",    "recommendation_generator")
     g.add_edge("feedback_generator",        "review_formatter")
     g.add_edge("recommendation_generator",  "review_formatter")
     g.add_edge("review_formatter",          "github_poster")
