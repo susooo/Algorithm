@@ -81,9 +81,9 @@ Solution:
 
 Respond ONLY in this JSON format:
 {{
-"my_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 완전탐색 | 구현 | 수학",
+"my_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 다익스트라 | 백트래킹 | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 슬라이딩윈도우 | 완전탐색 | 시뮬레이션 | 누적합 | 우선순위큐 | 조합/순열 | 트리 | 유니온파인드 | 구현 | 수학",
 "time_complexity": "O(?)",
-"optimal_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 완전탐색 | 구현 | 수학",
+"optimal_algorithm": "반드시 아래 카테고리 중 하나만 선택: DFS | BFS | DP | 다익스트라 | 백트래킹 | 이진탐색 | 그리디 | 정렬 | 해시 | 스택/큐 | 투포인터 | 슬라이딩윈도우 | 완전탐색 | 시뮬레이션 | 누적합 | 우선순위큐 | 조합/순열 | 트리 | 유니온파인드 | 구현 | 수학",
 "optimal_time_complexity": "O(?)",
 "correctness": "correct / partial / incorrect",
 "hidden_cases": [
@@ -135,13 +135,6 @@ def history_tracker(state: ReviewState) -> dict:
 # 피드백: 풀이 코드 + 분석 결과를 보내서 한국어 피드백을 받기
 def feedback_generator(state: ReviewState) -> dict:
     analysis = state["analysis"]
-    correctness = analysis.get("correctness", "unknown")
-    
-    tone = {
-        "correct":   "풀이가 정확합니다. 최적화 관점에서 피드백해주세요.",
-        "partial":   "일부 케이스에서 틀렸습니다. 개선점을 중점적으로 피드백해주세요.",
-        "incorrect": "풀이가 틀렸습니다. 문제점을 명확히 짚어주세요.",
-    }.get(correctness, "")
     
     prompt = f"""You are a coding mentor. Give feedback in Korean.
 
