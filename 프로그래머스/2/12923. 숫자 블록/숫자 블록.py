@@ -1,21 +1,17 @@
 def solution(begin, end):
-    answer = []
-    
-    for num in range(begin, end+1):
-        
-        if num == 1:
-            answer.append(0)
-            continue
-            
-        block = 1
-        for i in range(2, int(num**0.5)+1):
-            if num % i == 0:
-                if num//i <= 10000000:
-                    block = num//i
-                    break
-                
-                block = i
-                
-        answer.append(block)
-        
+    answer = [0] * (end - begin + 1)
+
+    LIMIT = 10000000
+
+    for d in range(1, LIMIT + 1):
+
+        # begin 이상인 첫 번째 d의 배수
+        start = max(d * 2, ((begin + d - 1) // d) * d)
+
+        for x in range(start, end + 1, d):
+            answer[x - begin] = d
+
+    if begin == 1:
+        answer[0] = 0
+
     return answer
