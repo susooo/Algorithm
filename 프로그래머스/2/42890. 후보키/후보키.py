@@ -1,33 +1,26 @@
-from itertools import combinations
-
 def solution(relation):
-    n, m = len(relation), len(relation[0])
     
-    #유일성 만족하는 키 찾기
-    temp = []
-    for i in range(1, m+1):
-        for comb in combinations(range(m), i):
-            
-            group = set()
-            for row in relation:
-                curr = tuple(row[col] for col in comb)
-                group.add(curr)
-            
-            if len(group)==n:
-                temp.append(comb)
+    col = len(relation[0])
+    candidates = []
     
-    #최소성 만족하는 키 찾기(유일성 키 후보중에서)
-    answer = []
-    for cand in temp:
-        cand = set(cand)
-        flag = True
-        
-        for key in answer:
-            if key.issubset(cand):
-                flag = False
+    for mask in range(1, 1<<col):
+        #유일성 체크
+        items = set()
+        for row in relation:
+            key = tuple(row[i] for i in range(col) if mask & (1<<i))
+            items.add(key)
+    
+        if len(items) != len(relation):
+            continue
+            
+        #최소성 체크
+        is_minimal = True
+        for ck in candidates:
+            if (mask&ck) == ck: #부분집합
+                is_minimal = False
                 break
-        
-        if flag:
-            answer.append(cand)
-        
-    return len(answer)
+            
+        if is_minimal:
+            candidates.append(mask)
+            
+    return len(candidates)
