@@ -3,10 +3,6 @@ def solution(n, k):
     answer = []
     nums = list(range(1, n+1))
     
-    cnt = 1
-    for i in range(1, len(nums)):
-        cnt *= i
-    
     while nums:
         cnt = 1
         for i in range(1, len(nums)):
